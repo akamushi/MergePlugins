@@ -1,0 +1,70 @@
+<scriptlet>
+
+<implements type="Automation" id="dispatcher">
+    <property name="PluginEvent">
+        <get/>
+    </property>
+    <property name="PluginDescription">
+        <get/>
+    </property>
+    <property name="PluginFileFilters">
+        <get/>
+    </property>
+    <property name="PluginIsAutomatic">
+        <get/>
+    </property>
+    <method name="UnpackFile"/>
+    <method name="PackFile"/>
+</implements>
+
+<script language="VBScript">
+
+Option Explicit
+
+Function get_PluginEvent()
+    get_PluginEvent = "FILE_PACK_UNPACK"
+End Function
+
+Function get_PluginDescription()
+    get_PluginDescription = "JSONÇêÆå`ÇµÇƒî‰ärÇ∑ÇÈ"
+End Function
+
+Function get_PluginFileFilters()
+    get_PluginFileFilters = "\.json$"
+End Function
+
+Function get_PluginIsAutomatic()
+    get_PluginIsAutomatic = True
+End Function
+
+Function UnpackFile(fileSrc, fileDst, pbChanged, pSubcode)
+    Dim fso
+    Dim foDst
+    Dim oWshShell
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Set foDst = fso.OpenTextFile(fileDst, 2, True)
+    Set oWshShell = CreateObject("WScript.Shell")
+    Dim oExec
+
+    Set oExec = oWshShell.Exec("MergePlugins\jq.bat """ & fileSrc & """")
+    Do while oExec.Status = 0
+        'Sleep(100)
+    Loop
+
+    Do Until oExec.StdOut.AtEndOfStream
+        foDst.WriteLine(oExec.StdOut.ReadLine)
+    Loop
+    Set foDst = Nothing
+    Set fso = Nothing
+
+    pbChanged = True
+    pSubcode = 0
+    UnpackFile = True
+End Function
+
+Function PackFile(fileSrc, fileDst, pbChanged, pSubcode)
+    PackFile = False
+End Function
+
+</script>
+</scriptlet>
