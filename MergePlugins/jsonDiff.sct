@@ -45,21 +45,37 @@ Function UnpackFile(fileSrc, fileDst, pbChanged, pSubcode)
     Set foDst = fso.OpenTextFile(fileDst, 2, True)
     Set oWshShell = CreateObject("WScript.Shell")
     Dim oExec
+    Dim readsize
+    Dim stdout
+    Dim stderr
+    stdout = ""
+    readsize = 1024
 
     Set oExec = oWshShell.Exec("MergePlugins\jq.bat """ & fileSrc & """")
     Do while oExec.Status = 0
         'Sleep(100)
+        stdout = stdout & oExec.StdOut.Read(readsize)
     Loop
 
     Do Until oExec.StdOut.AtEndOfStream
-        foDst.WriteLine(oExec.StdOut.ReadLine)
+        stdout = stdout & oExec.StdOut.Read(readsize)
+        'foDst.Write(stdout)
     Loop
+    foDst.Write(stdout)
+
+    if oExec.StdErr.AtEndOfStream then
+        pbChanged = True
+        pSubcode = 0
+        UnpackFile = True
+    else
+        pbChanged = False
+        pSubcode = 0
+        UnpackFile = False
+    end if
+
     Set foDst = Nothing
     Set fso = Nothing
 
-    pbChanged = True
-    pSubcode = 0
-    UnpackFile = True
 End Function
 
 Function PackFile(fileSrc, fileDst, pbChanged, pSubcode)
